@@ -28,6 +28,10 @@ const REALITY_PORT = process.env.REALITY_PORT || '';        // reality端口，�
 const CFIP = process.env.CFIP || 'saas.sin.fan';            // 节点优选域名或优选ip
 const CFPORT = process.env.CFPORT || 443;                   // 节点优选域名或优选ip对应的端口
 const NAME = process.env.NAME || '';                        // 节点名称
+const RESI_HOST = process.env.RESI_HOST || '';                  // 家宽落地: 住宅代理主机(留空不启用)
+const RESI_PORT = process.env.RESI_PORT || '';                  // 家宽落地: 住宅代理端口
+const RESI_USER = process.env.RESI_USER || '';                  // 家宽落地: 住宅代理用户名
+const RESI_PASS = process.env.RESI_PASS || '';                  // residential proxy password
 const CHAT_ID = process.env.CHAT_ID || '';                  // Telegram chat_id  两个变量不全不推送节点到TG 
 const BOT_TOKEN = process.env.BOT_TOKEN || '';              // Telegram bot_token 两个变量不全不推送节点到TG 
 const SHOW_LOG = !['false', 'disable', 'no'].includes((process.env.SHOW_LOG || 'true').toLowerCase()); // 是否显示日志输出，true/yes显示，false/disable/no屏蔽，默认显示
@@ -259,6 +263,11 @@ async function generateConfig() {
     dns: { servers: ["https+local://8.8.8.8/dns-query"] },
     outbounds: [{ protocol: "freedom", tag: "direct" }, { protocol: "blackhole", tag: "block" }]
   };
+
+  // 家宽落地: 设置了RESI_HOST/RESI_PORT时, 全部流量经住宅socks5代理出口
+  if (RESI_HOST && isValidPort(RESI_PORT)) {
+    config.outbounds[0] = { protocol: 'socks', tag: 'direct', settings: { servers: [{ address: RESI_HOST, port: parseInt(RESI_PORT), users: RESI_USER ? [{ user: RESI_USER, pass: RESI_PASS }] : undefined }] } };
+  }
 
   // VLESS Reality 配置
   if (isValidPort(REALITY_PORT)) {
